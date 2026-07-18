@@ -41,8 +41,6 @@ The project focuses on answering the following business questions:
 
 ## Dataset
 
-**Dataset:** `smart_logistics_dataset`
-
 **Observations:** 1,000 deliveries
 
 ### Key Variables
