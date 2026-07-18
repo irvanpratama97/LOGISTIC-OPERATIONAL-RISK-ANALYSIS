@@ -238,6 +238,7 @@ Rp 65,772,225
 ---
 
 # Python Code
+```python
 import pandas as pd
 import numpy as np
 import statsmodels.api as sm
