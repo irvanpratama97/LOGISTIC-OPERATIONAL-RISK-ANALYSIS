@@ -76,7 +76,7 @@ The dashboard highlighted **Mechanical Failure** as the largest controllable ope
 
 ## Phase 2 — Exploratory Analysis (MySQL)
 
-Performed asset-level Pearson correlation analysis using Common Table Expressions (CTEs).
+Performed asset-level Pearson correlation analysis.
 
 ### Objective
 
