@@ -244,23 +244,22 @@ import numpy as np
 import statsmodels.api as sm
 import statsmodels.formula.api as smf
 
-# --- 1. PREPARASI DATA ---
-# (Pastikan df sudah di-load di atas baris ini, misal: df = pd.read_csv(...))
+# --- DATA PREPARATION ---
 df['is_delay'] = np.where(df['Delay_Time'] > 0, 1, 0)
 df['is_overutilized'] = np.where(df['Asset_Utilization_Status'] == 'Overutilized', 1, 0)
 df['is_mechanical_failure'] = np.where(df['Logistics_Delay_Reason'] == 'Mechanical Failure', 1, 0)
 
 
-# --- 2. ANALISIS HUBUNGAN CAUSALITY ---
+# --- CAUSALITY RELATIONSHIP ANALYSIS ---
 
-# Hubungan A: Apakah Overutilized memicu Mechanical Failure? (Regresi Logistik)
+# A
 model_penyebab = smf.logit('is_mechanical_failure ~ is_overutilized', data=df).fit()
 print("--- ANALISYS 1: Overutilized Impact to Mechanical Failure ---")
 print(model_penyebab.summary())
 print("Odds Ratio:\n", np.exp(model_penyebab.params))
 print("\n" + "="*50 + "\n")
 
-# Hubungan B: Seberapa parah durasi delay akibat Mechanical Failure? (Linear OLS - Khusus data delay)
+# B
 df_delayed = df[df['Delay_Time'] > 0]
 model_durasi = smf.ols('Delay_Time ~ is_mechanical_failure', data=df_delayed).fit()
 print("--- ANALISYS 2: Mechanical Failure Impact to Delay Time ---")
@@ -268,7 +267,7 @@ print(model_durasi.summary())
 print("\n" + "="*50 + "\n")
 
 
-# --- 3. REGRESI TRANSAKSI VS DURASI DELAY (Dampak Finansial) ---
+# --- TRANSACTION REGRESSION VS DELAY TIME ---
 model_finance = smf.ols('User_Transaction_Amount ~ Delay_Time', data=df).fit()
 beta_delay = model_finance.params['Delay_Time']
 print("--- ANALISYS 3: Delay Time Impact to Purchase Amount ---")
@@ -276,25 +275,19 @@ print(model_finance.summary())
 print(f"Amount of Hourly Loss: Rp {abs(beta_delay):,.2f}")
 print("\n" + "="*50 + "\n")
 
-# --- 4. SIMULASI DAMPAK (Jika Overutilized Asset = 0) ---
+# --- IMPACT SIMULATION (Overutilized Asset = 0) ---
 
-# Rata-rata jam delay khusus karena Mechanical Failure
 avg_hours_mf = df_delayed[df_delayed['is_mechanical_failure'] == 1]['Delay_Time'].mean()
 
-# Probabilitas kerusakan pada aset yang normal/underutilized
 p_mf_normal = df[df['is_overutilized'] == 0]['is_mechanical_failure'].mean()
 
-# Estimasi jumlah kasus baru jika semua aset normal
 estimated_new_mf = len(df) * p_mf_normal
 current_mf = df['is_mechanical_failure'].sum()
 
-# Kasus kerusakan yang berhasil dicegah
 delta_mf = max(0, current_mf - estimated_new_mf)
 
-# Jam delay yang berhasil diselamatkan
 hours_saved = delta_mf * avg_hours_mf
 
-# Estimasi uang transaksi yang berhasil diselamatkan
 revenue_recovered = hours_saved * (-beta_delay)
 
 print("--- IMPACT SIMULATION RESULT (Overutilized = 0) ---")
